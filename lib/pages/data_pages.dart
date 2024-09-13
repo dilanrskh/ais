@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+
 class DeviceData {
   final DateTime time;
   final String deviceId;
@@ -8,6 +9,7 @@ class DeviceData {
   final double latitude;
   final double longitude;
   final double? additionalInfo;
+
 
   DeviceData({
     required this.time,
@@ -19,10 +21,13 @@ class DeviceData {
   });
 }
 
+
 class DataPage extends StatelessWidget {
   final Stream<DeviceData> deviceDataStream;
 
+
   DataPage({required this.deviceDataStream});
+
 
   @override
   Widget build(BuildContext context) {
@@ -67,3 +72,6 @@ class DataPage extends StatelessWidget {
     );
   }
 }
+
+
+
