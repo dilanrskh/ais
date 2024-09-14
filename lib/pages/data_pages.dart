@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-
 class DeviceData {
   final DateTime time;
   final String deviceId;
@@ -10,24 +9,20 @@ class DeviceData {
   final double longitude;
   final double? additionalInfo;
 
-
   DeviceData({
     required this.time,
     required this.deviceId,
     required this.status,
     required this.latitude,
     required this.longitude,
-    required this.additionalInfo,
+    this.additionalInfo, // tambahkan tanda tanya (?) untuk membuatnya nullable
   });
 }
-
 
 class DataPage extends StatelessWidget {
   final Stream<DeviceData> deviceDataStream;
 
-
   DataPage({required this.deviceDataStream});
-
 
   @override
   Widget build(BuildContext context) {
@@ -47,11 +42,11 @@ class DataPage extends StatelessWidget {
               return ListView(
                 children: <Widget>[
                   Text(
-                    '#${deviceData.additionalInfo}',
+                    '#${deviceData.additionalInfo ?? ''}', // tambahkan operator null-aware untuk menghindari null pointer exception
                     style: TextStyle(color: Colors.green, fontSize: 20),
                   ),
                   Text(
-                    '${dateFormat.format(deviceData.time)} CAMAR#${deviceData.deviceId}#${deviceData.status}#${deviceData.latitude}#${deviceData.longitude}#${deviceData.additionalInfo}',
+                    '${dateFormat.format(deviceData.time)} CAMAR#${deviceData.deviceId}#${deviceData.status}#${deviceData.latitude}#${deviceData.longitude}#${deviceData.additionalInfo ?? ''}',
                     style: TextStyle(color: Colors.green, fontSize: 16),
                   ),
                 ],
@@ -72,6 +67,3 @@ class DataPage extends StatelessWidget {
     );
   }
 }
-
-
-

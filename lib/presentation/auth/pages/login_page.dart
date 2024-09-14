@@ -84,13 +84,22 @@ class _LoginPageState extends State<LoginPage> {
               state.maybeWhen(
                 orElse: () {},
                 success: (authResponseModel) {
-                  AuthLocalDataSource().saveAuthData(authResponseModel);
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => MainPage(dataController: dataController),
-                    ),
-                  );
+                  if (authResponseModel != null) {
+                    AuthLocalDataSource().saveAuthData(authResponseModel);
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => MainPage(dataController: dataController),
+                      ),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Authentication failed'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
                 },
                 error: (message) {
                   ScaffoldMessenger.of(context).showSnackBar(

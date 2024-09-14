@@ -26,29 +26,29 @@ class AuthResponseModel {
       };
 }
 
-class User {
-  final int id;
-  final String name;
-  final String email;
+  class User {
+  final int? id;
+  final String? name;
+  final String? email;
   final dynamic emailVerifiedAt;
-  final String phone;
-  final String role;
-  final String noSeri;
-  final String kapal;
+  final String? phone;
+  final String? role;
+  final String? noSeri;
+  final String? kapal;
   final dynamic createdAt;
   final dynamic updatedAt;
 
   User({
-    required this.id,
-    required this.name,
-    required this.email,
-    required this.emailVerifiedAt,
-    required this.phone,
-    required this.role,
-    required this.noSeri,
-    required this.kapal,
-    required this.createdAt,
-    required this.updatedAt,
+    this.id,
+    this.name,
+    this.email,
+    this.emailVerifiedAt,
+    this.phone,
+    this.role,
+    this.noSeri,
+    this.kapal,
+    this.createdAt,
+    this.updatedAt,
   });
 
   factory User.fromRawJson(String str) => User.fromJson(json.decode(str));

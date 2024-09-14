@@ -20,7 +20,13 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       );
       response.fold(
         (l) => emit(_Error(l)),
-        (r) => emit(_Success(r)),
+        (r) {
+          if (r != null) {
+            emit(_Success(r));
+          } else {
+            emit(const _Error('Authentication failed'));
+          }
+        },
       );
     });
   }
