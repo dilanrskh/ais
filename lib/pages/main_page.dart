@@ -48,6 +48,7 @@ class _CenterTextScreenState extends State<CenterTextScreen> {
   LatLng? currentLocation;
   late MapController mapController;
   List<LatLng> lines = [];
+  LatLng? destinationLocation;
 
   final List<FishData> fishData = [
     FishData(latitude: -6.1751, longitude: 106.8650, name: "Jakarta"),
@@ -70,10 +71,10 @@ class _CenterTextScreenState extends State<CenterTextScreen> {
         setState(() {
           currentLocation = location;
           mapController.move(location, 10.0);
-
-          if (lines.isNotEmpty) {
-            lines[0] = location;
-            lines = getRouteLine(currentLocation!, lines[1]);
+          
+          // Update line if destination is set
+          if (destinationLocation != null && lines.isNotEmpty) {
+            lines = getRouteLine(currentLocation!, destinationLocation!);
           }
         });
       });
@@ -83,26 +84,27 @@ class _CenterTextScreenState extends State<CenterTextScreen> {
   void drawLineToLocation(LatLng destination) {
     if (currentLocation != null) {
       setState(() {
-        lines = [
-          currentLocation!,
-          destination,
-        ];
+        destinationLocation = destination;
+        lines = getRouteLine(currentLocation!, destinationLocation!);
       });
     }
   }
 
   List<LatLng> getRouteLine(LatLng start, LatLng end) {
-    // Calculate the route line points
-    List<LatLng> routeLine = [];
-    double distance = haversineDistance(start.latitude, start.longitude, end.latitude, end.longitude);
-    int numPoints = (distance / 10).toInt(); // adjust the number of points based on the distance
-    for (int i = 0; i <= numPoints; i++) {
-      double lat = start.latitude + (end.latitude - start.latitude) * i / numPoints;
-      double lon = start.longitude + (end.longitude - start.longitude) * i / numPoints;
-      routeLine.add(LatLng(lat, lon));
-    }
-    return routeLine;
+  List<LatLng> routeLine = [];
+  double distance = haversineDistance(start.latitude, start.longitude, end.latitude, end.longitude);
+  int numPoints = distance > 0 ? max(2, (distance / 10).toInt()) : 2; 
+
+  for (int i = 0; i < numPoints; i++) {
+    double lat = start.latitude + (end.latitude - start.latitude) * i / (numPoints - 1);
+    double lon = start.longitude + (end.longitude - start.longitude) * i / (numPoints - 1);
+    routeLine.add(LatLng(lat, lon));
   }
+
+  routeLine.add(end);
+
+  return routeLine;
+}
 
   double haversineDistance(double lat1, double lon1, double lat2, double lon2) {
     const double earthRadius = 6371; // in kilometers
@@ -148,7 +150,6 @@ class _CenterTextScreenState extends State<CenterTextScreen> {
                       final deviceData = snapshot.data!;
                       updateCurrentLocation(LatLng(deviceData.latitude, deviceData.longitude));
                     }
-
                     return FlutterMap(
                       mapController: mapController,
                       options: MapOptions(
@@ -224,7 +225,7 @@ class _CenterTextScreenState extends State<CenterTextScreen> {
           SquareButton(
             icon: Icons.bluetooth,
             label: 'Bluetooth',
-            onPressed : () => Navigator.pushNamed(context, '/bluetooth'),
+            onPressed: () => Navigator.pushNamed(context, '/bluetooth'),
           ),
           const SquareButton(
             icon: Icons.downloading_outlined,
