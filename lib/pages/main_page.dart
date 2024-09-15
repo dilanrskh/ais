@@ -4,6 +4,7 @@ import 'package:camar_ais/data/models/fish_data.dart';
 import 'package:camar_ais/pages/bluetooth_pages.dart';
 import 'package:camar_ais/pages/data_pages.dart';
 import 'package:camar_ais/pages/setting_page.dart';
+import 'package:camar_ais/pages/weather.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -49,6 +50,7 @@ class _CenterTextScreenState extends State<CenterTextScreen> {
   late MapController mapController;
   List<LatLng> lines = [];
   LatLng? destinationLocation;
+  String distanceText = '';
 
   final List<FishData> fishData = [
     FishData(latitude: -6.1751, longitude: 106.8650, name: "Jakarta"),
@@ -72,9 +74,10 @@ class _CenterTextScreenState extends State<CenterTextScreen> {
           currentLocation = location;
           mapController.move(location, 10.0);
           
-          // Update line if destination is set
+          // Update line and distance if destination is set
           if (destinationLocation != null && lines.isNotEmpty) {
             lines = getRouteLine(currentLocation!, destinationLocation!);
+            distanceText = calculateDistance(currentLocation!, destinationLocation!).toStringAsFixed(2) + " km";
           }
         });
       });
@@ -86,6 +89,7 @@ class _CenterTextScreenState extends State<CenterTextScreen> {
       setState(() {
         destinationLocation = destination;
         lines = getRouteLine(currentLocation!, destinationLocation!);
+        distanceText = calculateDistance(currentLocation!, destinationLocation!).toStringAsFixed(2) + " km";
       });
     }
   }
@@ -125,6 +129,10 @@ class _CenterTextScreenState extends State<CenterTextScreen> {
     return deg * pi / 180;
   }
 
+  double calculateDistance(LatLng start, LatLng end) {
+    return haversineDistance(start.latitude, start.longitude, end.latitude, end.longitude);
+  }
+
   Future<bool> _checkInternetConnection() async {
     try {
       final response = await http.get(Uri.parse('https://www.google.com'));
@@ -153,7 +161,7 @@ class _CenterTextScreenState extends State<CenterTextScreen> {
                     return FlutterMap(
                       mapController: mapController,
                       options: MapOptions(
-                        initialCenter: currentLocation ?? const LatLng(-6.1751, 106.8650), // Default to Jakarta
+                        initialCenter: currentLocation ?? const LatLng(-6.1751, 106.8650),
                         minZoom: 10.0,
                       ),
                       children: [
@@ -177,8 +185,8 @@ class _CenterTextScreenState extends State<CenterTextScreen> {
                                     point: LatLng(fish.latitude, fish.longitude),
                                     child: IconButton(
                                       icon: const Icon(
-                                        Icons.masks_rounded,
-                                        color: Colors.orangeAccent,
+                                        Icons.water_drop_sharp,
+                                        color: Color.fromARGB(255, 221, 128, 7),
                                         size: 32,
                                       ),
                                       onPressed: () {
@@ -201,11 +209,11 @@ class _CenterTextScreenState extends State<CenterTextScreen> {
                     );
                   },
                 ),
-                buildBottomButtons(),
+                buildBottomButtons(),                  
               ],
             );
           } else {
-            return Center(
+            return const Center(
               child: Text('Tidak ada koneksi internet'),
             );
           }
@@ -214,35 +222,60 @@ class _CenterTextScreenState extends State<CenterTextScreen> {
     );
   }
 
-  Widget buildBottomButtons() {
+    Widget buildBottomButtons() {
     return Positioned(
       bottom: 20,
       left: 10,
       right: 10,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          SquareButton(
-            icon: Icons.bluetooth,
-            label: 'Bluetooth',
-            onPressed: () => Navigator.pushNamed(context, '/bluetooth'),
-          ),
-          const SquareButton(
-            icon: Icons.downloading_outlined,
-            label: 'Download Peta',
-            onPressed: null,
-          ),
-          const SquareButton(
-            icon: Icons.cloudy_snowing,
-            label: 'Cuaca',
-            onPressed: null,
-          ),
-          SquareButton(
-            icon: Icons.settings,
-            label: 'Setting',
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const SettingPage())),
-          ),
-        ],
+      child: Container(
+        padding: const EdgeInsets.all(20.0),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16.0),
+        ),
+        child: Column(
+          children: [
+            if (distanceText.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 10), 
+                child: Center(
+                  child: Text(
+                    'Jarak : $distanceText',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                SquareButton(
+                  icon: Icons.bluetooth,
+                  label: 'Bluetooth',
+                  onPressed: () => Navigator.pushNamed(context, '/bluetooth'),
+                ),
+                const SquareButton(
+                  icon: Icons.downloading_outlined,
+                  label: 'Download Peta',
+                  onPressed: null,
+                ),
+                SquareButton(
+                  icon: Icons.cloudy_snowing,
+                  label: 'Cuaca',
+                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const WeatherPage())),
+                ),
+                SquareButton(
+                  icon: Icons.settings,
+                  label: 'Setting',
+                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const SettingPage())),
+                ),
+              ],
+            ),
+            
+          ],
+        ),
       ),
     );
   }
@@ -267,16 +300,17 @@ class SquareButton extends StatelessWidget {
       children: [
         ElevatedButton(
           style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.grey[300],
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
             ),
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(10), 
           ),
           onPressed: onPressed,
-          child: Icon(icon, size: 28),
+          child: Icon(icon, size: 24), 
         ),
-        const SizedBox(height: 5),
-        Text(label, style: TextStyle(color: Colors.grey[700], fontWeight: FontWeight.w700)),
+        const SizedBox(height: 4), 
+        Text(label, style: TextStyle(color: Colors.grey[700], fontWeight: FontWeight.w700, fontSize: 12)), // Reduced font size for smaller buttons
       ],
     );
   }

@@ -34,6 +34,7 @@ class _BluePageState extends State<BluePage> {
   Position? _currentLocation;
   Position? _currentPosition;
   StreamSubscription<Position>? _positionStreamSubscription;
+  bool _showDistanceSnackbar = false;
 
   @override
   void initState() {
@@ -123,86 +124,91 @@ class _BluePageState extends State<BluePage> {
     });
   }
 
-  void _processReceivedData(String data, BluetoothDevice device) {
-    try {
-      data = data.replaceAll(RegExp(r'[\x00-\x1F\x7F-\x9F]'), '');
-      partialData += data;
+  // ... rest of the code ...
 
-      while (partialData.contains('#')) {
-        int startIndex = partialData.indexOf('CAMAR#');
-        int endIndex = partialData.indexOf('#', startIndex + 1);
+void _processReceivedData(String data, BluetoothDevice device) {
+  try {
+    data = data.replaceAll(RegExp(r'[\x00-\x1F\x7F-\x9F]'), '');
+    partialData += data;
 
-        if (startIndex != -1 && endIndex != -1 && partialData.substring(endIndex + 1).contains('CAMAR#')) {
-          String completeData = partialData.substring(startIndex, endIndex + 1);
-          List<String> dataParts = completeData.split('#');
+    while (partialData.contains('#')) {
+      int startIndex = partialData.indexOf('CAMAR#');
+      int endIndex = partialData.indexOf('#', startIndex + 1);
 
-          if (dataParts.length >= 7) {
+      if (startIndex != -1 && endIndex != -1 && partialData.substring(endIndex + 1).contains('CAMAR#')) {
+        String completeData = partialData.substring(startIndex, endIndex + 1);
+        List<String> dataParts = completeData.split('#');
+
+        if (dataParts.length >= 7) {
+          try {
+            String deviceId = dataParts[1];
+            int status = int.parse(dataParts[2]);
+
+            double? latitude;
             try {
-              String deviceId = dataParts[1];
-              int status = int.parse(dataParts[2]);
-
-              double? latitude;
-              try {
-                latitude = double.parse(dataParts[3]);
-              } catch (e) {
-                print('Invalid latitude format in data: ${dataParts[3]}');
-                latitude = null;
-              }
-
-              double? longitude;
-              try {
-                longitude = double.parse(dataParts[4]);
-              } catch (e) {
-                print('Invalid longitude format in data: ${dataParts[4]}');
-                longitude = null;
-              }
-
-              double? additionalInfo;
-              try {
-                additionalInfo = double.parse(dataParts[5]);
-              } catch (e) {
-                print('Invalid additional info format in data: ${dataParts[5]}');
-                additionalInfo = null;
-              }
-
-              if (latitude != null && longitude != null) {
-                DeviceData updatedDeviceData = DeviceData(
-                  time: DateTime.now(),
-                  deviceId: deviceId,
-                  status: status,
-                  latitude: latitude,
-                  longitude: longitude,
-                  additionalInfo: additionalInfo,
-                );
-
-                widget.dataController.add(updatedDeviceData);
-              } else {
-                print('Invalid latitude or longitude in data: $data');
-              }
+              latitude = double.parse(dataParts[3]);
             } catch (e) {
-              print('Error parsing data parts: $e');
+              print('Invalid latitude format in data: ${dataParts[3]}');
+              latitude = null;
             }
-          } else {
-            print('Incomplete data received: $partialData');
-          }
 
-          partialData = partialData.substring(endIndex + 1);
+            double? longitude;
+            try {
+              longitude = double.parse(dataParts[4]);
+            } catch (e) {
+              print('Invalid longitude format in data: ${dataParts[4]}');
+              longitude = null;
+            }
+
+            double? additionalInfo;
+            try {
+              additionalInfo = double.parse(dataParts[5]);
+            } catch (e) {
+              print('Invalid additional info format in data: ${dataParts[5]}');
+              additionalInfo = null;
+            }
+
+            if (latitude != null && longitude != null) {
+              DeviceData updatedDeviceData = DeviceData(
+                time: DateTime.now(),
+                deviceId: deviceId,
+                status: status,
+                latitude: latitude,
+                longitude: longitude,
+                additionalInfo: additionalInfo,
+              );
+
+              // Add data to the stream instead of the controller
+              widget.dataController.add(updatedDeviceData); // Add data to the stream
+            } else {
+              print('Invalid latitude or longitude in data: $data');
+            }
+          } catch (e) {
+            print('Error parsing data parts: $e');
+          }
         } else {
-          if (partialData.substring(endIndex + 1).startsWith('#')) {
-          } else {
-            partialData = '';
-          }
-
-          break;
+          print('Incomplete data received: $partialData');
         }
+
+        partialData = partialData.substring(endIndex + 1);
+      } else {
+        if (partialData.substring(endIndex + 1).startsWith('#')) {
+        } else {
+          partialData = '';
+        }
+
+        break;
       }
-    } catch (e) {
-      print('Error processing data: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error processing data: $e')),
-      );
     }
+  } catch (e) {
+    print('Error processing data: $e');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error processing data: $e')),
+    );
   }
+}
+
+// ... rest of the code ...
 
   _initGeolocation() async {
     bool serviceEnabled;
@@ -299,6 +305,9 @@ class _BluePageState extends State<BluePage> {
           title: const Text('Connected Device Information'),
           subtitle: Text(_connectedDevice?.name ?? 'Unknown Device'),
         ),
+        // ... other UI elements ...
+
+        // Square button
         ElevatedButton(
           onPressed: () {
             if (_connectedDevice != null) {
@@ -317,6 +326,17 @@ class _BluePageState extends State<BluePage> {
           },
           child: const Text('View Data'),
         ),
+
+        // Show snackbar for distance
+        if (_showDistanceSnackbar)
+          Align(
+            alignment: Alignment.topCenter,
+            child: SnackBar(
+              content: Text('Distance: $_currentPosition?.distanceFrom(_currentLocation) meters'),
+              duration: const Duration(seconds: 2),
+              behavior: SnackBarBehavior.floating,
+            ),
+          ),
       ],
     );
   }
