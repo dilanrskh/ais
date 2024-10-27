@@ -1,4 +1,3 @@
-import 'package:camar_ais/data/datasources/auth_local_datasources.dart';
 import 'package:camar_ais/presentation/auth/bloc/logout/logout_bloc.dart';
 import 'package:camar_ais/presentation/auth/pages/login_page.dart';
 import 'package:flutter/material.dart';
@@ -16,36 +15,43 @@ class _SettingPageState extends State<SettingPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: BackButton(),
-        title: Text('Settings'),
+        leading: const BackButton(),
+        title: const Text('Settings'),
       ),
       body: ListView(
         shrinkWrap: true,
         children: [
           ListTile(
             title: Center(
-              child:  BlocConsumer<LogoutBloc, LogoutState>(
-            listener: (context, state) {
-              state.maybeMap(
-                orElse: () {},
-                success: (_) {
-                  AuthLocalDataSource().removeAuthData();
-                  Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const LoginPage()));
+              child: BlocConsumer<LogoutBloc, LogoutState>(
+                listener: (context, state) {
+                  if (state is LogoutSuccess) {
+                    Navigator.pushReplacement(context,
+                        MaterialPageRoute(builder: (context) {
+                      return const LoginPage();
+                    }));
+                  }
+                  if (state is LogoutFailed) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(state.message),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
                 },
-              );
-            },
-            builder: (context, state) {
-              return ElevatedButton(
-                onPressed: () {
-                  context.read<LogoutBloc>().add(const LogoutEvent.logout());
+                builder: (context, state) {
+                  if (state is LogoutLoading) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  return ElevatedButton(
+                    onPressed: () {
+                      context.read<LogoutBloc>().add(LogoutButtonPressed());
+                    },
+                    child: const Text('Logout'),
+                  );
                 },
-                child: const Text('Logout'),
-              );
-            },
-          ),
+              ),
             ),
           ),
         ],

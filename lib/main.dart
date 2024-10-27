@@ -3,9 +3,11 @@ import 'dart:async';
 import 'package:camar_ais/constants/colors.dart';
 import 'package:camar_ais/data/datasources/auth_local_datasources.dart';
 import 'package:camar_ais/data/datasources/auth_remote_datasources.dart';
+import 'package:camar_ais/data/models/auth_response_model.dart';
 import 'package:camar_ais/pages/data_pages.dart';
 import 'package:camar_ais/pages/main_page.dart';
 import 'package:camar_ais/presentation/auth/bloc/logout/logout_bloc.dart';
+import 'package:camar_ais/presentation/auth/bloc/register/register_bloc.dart';
 import 'package:camar_ais/presentation/auth/pages/login_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -33,6 +35,9 @@ class MyApp extends StatelessWidget {
         BlocProvider(
           create: (context) => LogoutBloc(AuthRemoteDataSource()),
         ),
+        BlocProvider(
+          create: (context) => RegisterBloc(AuthRemoteDataSource()),
+        ),
       ],
       child: MaterialApp(
         title: 'Flutter Demo',
@@ -56,8 +61,8 @@ class MyApp extends StatelessWidget {
             ),
           ),
         ),
-        home: FutureBuilder<bool>(
-          future: AuthLocalDataSource().isAuth(),
+        home: FutureBuilder<AuthResponseModel?>(
+          future: AuthLocalDatasource().getAuthData(),
           builder: (context, snapshot) {
             if (snapshot.hasData && snapshot.data != null && snapshot.data == true) {
               return MainPage(dataController: dataController);

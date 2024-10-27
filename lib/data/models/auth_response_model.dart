@@ -2,12 +2,14 @@
 import 'dart:convert';
 
 class AuthResponseModel {
-  final User user;
-  final String token;
+  final User? user;
+  final String? token;
+  final String? jarak;
 
   AuthResponseModel({
-    required this.user,
-    required this.token,
+    this.user,
+    this.token,
+    this.jarak,
   });
 
   factory AuthResponseModel.fromRawJson(String str) =>
@@ -17,24 +19,27 @@ class AuthResponseModel {
 
   factory AuthResponseModel.fromJson(Map<String, dynamic> json) => AuthResponseModel(
         user: User.fromJson(json["user"]),
-        token: json["token"],
+        token: json["token"] as String?,
+        jarak: json["jarak"] as String?,
       );
 
   Map<String, dynamic> toJson() => {
-        "user": user.toJson(),
+        "user": user?.toJson(),
         "token": token,
+        "jarak": jarak,
       };
 }
 
-  class User {
+class User {
   final int? id;
   final String? name;
   final String? email;
-  final dynamic emailVerifiedAt;
   final String? phone;
   final String? role;
   final String? noSeri;
   final String? kapal;
+  final String? jarak;
+  final dynamic image;
   final dynamic createdAt;
   final dynamic updatedAt;
 
@@ -42,11 +47,12 @@ class AuthResponseModel {
     this.id,
     this.name,
     this.email,
-    this.emailVerifiedAt,
     this.phone,
     this.role,
     this.noSeri,
     this.kapal,
+    this.jarak,
+    this.image,
     this.createdAt,
     this.updatedAt,
   });
@@ -56,14 +62,15 @@ class AuthResponseModel {
   String toRawJson() => json.encode(toJson());
 
   factory User.fromJson(Map<String, dynamic> json) => User(
-        id: json["id"],
-        name: json["name"],
-        email: json["email"],
-        emailVerifiedAt: json["email_verified_at"],
-        phone: json["phone"],
-        noSeri: json["no_seri"],
-        kapal: json["kapal"],
-        role: json["role"],
+        id: json["id"] as int?,
+        name: json["name"] as String?,
+        email: json["email"] as String?,
+        phone: json["phone"] as String?,
+        role: json["role"] as String?,
+        noSeri: json["no_seri"] as String?,
+        kapal: json["kapal"] as String?,
+        jarak: json["jarak"] as String?,
+        image: json["image"],
         createdAt: json["created_at"],
         updatedAt: json["updated_at"],
       );
@@ -72,11 +79,12 @@ class AuthResponseModel {
         "id": id,
         "name": name,
         "email": email,
-        "email_verified_at": emailVerifiedAt,
         "phone": phone,
+        "role": role,
         "no_seri": noSeri,
         "kapal": kapal,
-        "role": role,
+        "jarak": jarak,
+        "image": image,
         "created_at": createdAt,
         "updated_at": updatedAt,
       };

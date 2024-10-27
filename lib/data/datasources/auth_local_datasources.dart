@@ -1,37 +1,51 @@
 import 'dart:convert';
-
 import 'package:camar_ais/data/models/auth_response_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-
-class AuthLocalDataSource {
-  Future<void> saveAuthData(AuthResponseModel authResponseModel) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('auth_data', authResponseModel.toRawJson());
+class AuthLocalDatasource {
+  Future<SharedPreferences> _getPrefs() async {
+    return await SharedPreferences.getInstance();
   }
 
-  // ini untuk remove auth data alias logout
-  Future<void> removeAuthData() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('auth_data');
-  }
-
-  // ini buat dapetin token, data, email
-  Future<AuthResponseModel> getAuthData() async {
-    final prefs = await SharedPreferences.getInstance();
-    final authData = prefs.getString('auth_data');
-    if (authData != null) {
-      return AuthResponseModel.fromJson(json.decode(authData));
-    } else {
-      throw Exception("Auth data not found");
+  Future<void> saveAuthData(AuthResponseModel data) async {
+    try {
+      final prefs = await _getPrefs();
+      await prefs.setString('auth_data', data.toRawJson());
+    } catch (e) {
+      throw Exception("Failed to save auth data: $e");
     }
   }
 
-  // ini buat ngecek data auth
-  Future<bool> isAuth() async {
-    final prefs = await SharedPreferences.getInstance();
-    final authData = prefs.getString('auth_data');
+  Future<AuthResponseModel> getAuthData() async {
+    try {
+      final prefs = await _getPrefs();
+      final authData = prefs.getString('auth_data');
+      
+      if (authData != null) {
+        return AuthResponseModel.fromJson(json.decode(authData));
+      } else {
+        throw Exception("Auth data not found");
+      }
+    } catch (e) {
+      throw Exception("Failed to retrieve auth data: $e");
+    }
+  }
 
-    return authData != null;
+  Future<void> removeAuthData() async {
+    try {
+      final prefs = await _getPrefs();
+      await prefs.remove('auth_data');
+    } catch (e) {
+      throw Exception("Failed to remove auth data: $e");
+    }
+  }
+
+  Future<bool> isLogin() async {
+    try {
+      final prefs = await _getPrefs();
+      return prefs.containsKey('auth_data');
+    } catch (e) {
+      throw Exception("Failed to check login status: $e");
+    }
   }
 }

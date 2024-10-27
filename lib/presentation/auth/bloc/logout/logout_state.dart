@@ -1,9 +1,18 @@
 part of 'logout_bloc.dart';
 
-@freezed
-class LogoutState with _$LogoutState {
-  const factory LogoutState.initial() = _Initial;
-  const factory LogoutState.loading() = _Loading;
-  const factory LogoutState.success() = _Success;
-  const factory LogoutState.error(String message) = _Error;
+@immutable
+sealed class LogoutState {}
+
+final class LogoutInitial extends LogoutState {}
+
+final class LogoutLoading extends LogoutState {}
+
+final class LogoutSuccess extends LogoutState {}
+
+final class LogoutFailed extends LogoutState {
+  final String message;
+  
+  LogoutFailed({
+    required this.message,
+  });
 }

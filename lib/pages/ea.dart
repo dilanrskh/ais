@@ -1,8 +1,5 @@
-// ignore_for_file: use_build_context_synchronously
-
 import 'dart:async';
 import 'dart:math';
-import 'package:camar_ais/data/models/mmsi_data.dart';
 import 'package:camar_ais/pages/bluetooth_pages.dart';
 import 'package:camar_ais/pages/data_pages.dart';
 import 'package:camar_ais/pages/setting_page.dart';
@@ -63,15 +60,9 @@ class _CenterTextScreenState extends State<CenterTextScreen> {
 
   List<List<dynamic>> _csvData = [];
 
-  final List<MMSIDATA> mmsiData = [
-    MMSIDATA(mmsi: '123456789', nama: 'Kapal 1', latitude: -6.373519, longitude: 106.875984),
-    MMSIDATA(mmsi: '987654321', nama: 'Kapal 2', latitude: -6.17539, longitude: 106.8272),
-    MMSIDATA(mmsi: '192837465', nama: 'Kapal 3', latitude: -6.402484, longitude: 106.794241)
-  ];
-
   Future<void> _loadCsvData() async {
     final rawData = await rootBundle.loadString('assets/koordinat.csv');
-    List<List<dynamic>> csvTable = const CsvToListConverter().convert(rawData);
+    List<List<dynamic>> csvTable = CsvToListConverter().convert(rawData);
     setState(() {
       _csvData = csvTable;
     });
@@ -113,7 +104,7 @@ class _CenterTextScreenState extends State<CenterTextScreen> {
   }
 
   void _calculateDistance(LatLng start, LatLng end) {
-    const double radius = 6371e3;
+    const double radius = 6371e3; 
     final double lat1 = start.latitude * (pi / 180);
     final double lon1 = start.longitude * (pi / 180);
     final double lat2 = end.latitude * (pi / 180);
@@ -128,7 +119,7 @@ class _CenterTextScreenState extends State<CenterTextScreen> {
     final double distanceKm = distance / 1000;
 
     final double distanceMiles = distanceKm * 0.621371;
-    final String distanceText = '${(distanceMiles).toStringAsFixed(2)} km';
+    final String distanceText = (distanceKm).toStringAsFixed(2) + ' km';
 
     lines.add(start);
     lines.add(end);
@@ -154,12 +145,12 @@ class _CenterTextScreenState extends State<CenterTextScreen> {
 
     final double distance = Geolocator.distanceBetween(position.latitude,
         position.longitude, destination.latitude, destination.longitude);
-    final double time = distance / 20;
-    lines.add(LatLng(position.latitude, position.longitude));
+    final double time = distance / 20; 
+        lines.add(LatLng(position.latitude, position.longitude));
     lines.add(destination);
 
     setState(() {
-      distanceText = '${(distance / 1000).toStringAsFixed(2)} km';
+      distanceText = (distance / 1000).toStringAsFixed(2) + ' km';
       timeText = (time / 60).toStringAsFixed(2) + ' menit';
     });
 
@@ -193,7 +184,7 @@ class _CenterTextScreenState extends State<CenterTextScreen> {
               child: const Text('OK'),
             ),
           ],
- );
+        );
       },
     );
   }
@@ -207,7 +198,7 @@ class _CenterTextScreenState extends State<CenterTextScreen> {
           position.longitude, destination.latitude, destination.longitude);
 
       setState(() {
-        distanceText = '${(distance / 1000).toStringAsFixed(2)} km';
+        distanceText = (distance / 1000).toStringAsFixed(2) + ' km';
       });
 
       await Future.delayed(const Duration(seconds: 1));
@@ -260,7 +251,7 @@ class _CenterTextScreenState extends State<CenterTextScreen> {
                               print('Invalid row: $row');
                               return const Marker(
                                 point: LatLng(0,
-                                    0),
+                                    0), 
                                 child: Icon(Icons.warning,
                                     color: Colors.red, size: 32),
                               );
@@ -333,7 +324,7 @@ class _CenterTextScreenState extends State<CenterTextScreen> {
                               print('Invalid latitude or longitude: $row');
                               return const Marker(
                                 point: LatLng(0,
-                                    0),
+                                    0), 
                                 child: Icon(Icons.warning,
                                     color: Colors.red, size: 32),
                               );
@@ -350,24 +341,6 @@ class _CenterTextScreenState extends State<CenterTextScreen> {
                               ),
                             ],
                           ),
-                          MarkerLayer(
-                    markers: mmsiData
-                        .map((mmsi) => Marker(
-                              point: LatLng(mmsi.latitude, mmsi.longitude),
-                              child: IconButton(
-                                icon: Icon(
-                                  Icons.local_shipping,
-                                  color: Colors.purpleAccent[900],
-                                  size: 32,
-                                ),
-                                onPressed: () {
-                                  drawLineToLocation(LatLng(mmsi.latitude, mmsi.longitude));
-                                },
-                              ),
-                            ))
-                        .toList(),
-                  ),
-
                       ],
                     );
                   },
@@ -377,7 +350,7 @@ class _CenterTextScreenState extends State<CenterTextScreen> {
             );
           } else {
             return const Center(
-              child: Text('Tidak ada koneksi internet '),
+              child: Text('Tidak ada koneksi internet'),
             );
           }
         },
@@ -420,8 +393,8 @@ class _CenterTextScreenState extends State<CenterTextScreen> {
                   onPressed: () => Navigator.pushNamed(context, '/bluetooth'),
                 ),
                 const SquareButton(
-                  icon: Icons.refresh_rounded,
-                  label: 'Refresh',
+                  icon: Icons.downloading_outlined,
+                  label: 'Download Peta',
                   onPressed: null,
                 ),
                 SquareButton(

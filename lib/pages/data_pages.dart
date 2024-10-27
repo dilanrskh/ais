@@ -15,52 +15,60 @@ class DeviceData {
     required this.status,
     required this.latitude,
     required this.longitude,
-    this.additionalInfo, // tambahkan tanda tanya (?) untuk membuatnya nullable
+    this.additionalInfo,
   });
 }
 
-class DataPage extends StatelessWidget {
+class DataPage extends StatefulWidget {
   final Stream<DeviceData> deviceDataStream;
 
   DataPage({required this.deviceDataStream});
+
+  @override
+  _DataPageState createState() => _DataPageState();
+}
+
+class _DataPageState extends State<DataPage> {
+  List<DeviceData> deviceDataList = [];
+
+  @override
+  void initState() {
+    super.initState();
+    widget.deviceDataStream.listen((deviceData) {
+      setState(() {
+        deviceDataList.add(deviceData);
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final DateFormat dateFormat = DateFormat('HH:mm:ss.SSS');
     return Scaffold(
       appBar: AppBar(
-        title: Text('Device Data'),
+        title: const Text('Device Data'),
       ),
       body: Container(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         color: Colors.black,
-        child: StreamBuilder<DeviceData>(
-          stream: deviceDataStream,
-          builder: (context, snapshot) {
-            if (snapshot.hasData) {
-              final deviceData = snapshot.data!;
-              return ListView(
-                children: <Widget>[
-                  Text(
-                    '#${deviceData.additionalInfo ?? ''}', // tambahkan operator null-aware untuk menghindari null pointer exception
-                    style: TextStyle(color: Colors.green, fontSize: 20),
-                  ),
-                  Text(
-                    '${dateFormat.format(deviceData.time)} CAMAR#${deviceData.deviceId}#${deviceData.status}#${deviceData.latitude}#${deviceData.longitude}#${deviceData.additionalInfo ?? ''}',
-                    style: TextStyle(color: Colors.green, fontSize: 16),
-                  ),
-                ],
-              );
-            } else if (snapshot.hasError) {
-              return Text(
-                'Error: ${snapshot.error}',
-                style: TextStyle(color: Colors.red),
-              );
-            } else {
-              return Center(
-                child: CircularProgressIndicator(),
-              );
-            }
+        child: ListView.builder(
+          itemCount: deviceDataList.length,
+          itemBuilder: (context, index) {
+            final deviceData = deviceDataList[index];
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  '#${deviceData.additionalInfo ?? ''}',
+                  style: const TextStyle(color: Colors.green, fontSize: 20),
+                ),
+                Text(
+                  '${dateFormat.format(deviceData.time)} CAMAR#${deviceData.deviceId}#${deviceData.status}#${deviceData.latitude}#${deviceData.longitude}#${deviceData.additionalInfo ?? ''}',
+                  style: const TextStyle(color: Colors.green, fontSize: 16),
+                ),
+                const SizedBox(height: 1 ),
+              ],
+            );
           },
         ),
       ),
